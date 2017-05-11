@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Array exposing (..)
 
 
 main : Program Never Model Msg
@@ -27,19 +28,21 @@ type alias Cat =
 
 
 type alias Model =
-    { allCats : List Cat
-    , currCat : Maybe Cat
+    { allCats : Array Cat
+    , currCatIndex : Int
     }
 
 
 init : ( Model, Cmd Msg )
 init =
     ( Model
-        [ (Cat "Tom" "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Tiggy_the_talking_cat.JPG/1024px-Tiggy_the_talking_cat.JPG" 0)
-        , (Cat "Captain McFurry" "https://newevolutiondesigns.com/images/freebies/cat-wallpaper-preview-24.jpg" 0)
-        , (Cat "Snowball" "http://mypetforumonline.com/wp-content/uploads/2014/08/fat-cat.jpg" 0)
-        ]
-        Nothing
+        (Array.fromList
+            [ (Cat "Tom" "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Tiggy_the_talking_cat.JPG/1024px-Tiggy_the_talking_cat.JPG" 0)
+            , (Cat "Captain McFurry" "https://newevolutiondesigns.com/images/freebies/cat-wallpaper-preview-24.jpg" 0)
+            , (Cat "Snowball" "http://mypetforumonline.com/wp-content/uploads/2014/08/fat-cat.jpg" 0)
+            ]
+        )
+        0
     , Cmd.none
     )
 
@@ -50,7 +53,7 @@ init =
 
 type Msg
     = ClickCat
-    | SwitchCat Cat
+    | SwitchCat Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,18 +61,24 @@ update msg model =
     case msg of
         ClickCat ->
             let
-                updatedCat =
-                    case model.currCat of
-                        Nothing ->
-                            Nothing
-
-                        Just cat ->
-                            Just { cat | clicks = cat.clicks + 1 }
+                currCat =
+                    Array.get model.currCatIndex model.allCats
             in
-                ( { model | currCat = updatedCat }, Cmd.none )
+                case currCat of
+                    Nothing ->
+                        ( model, Cmd.none )
 
-        SwitchCat newCat ->
-            ( { model | currCat = Just newCat }, Cmd.none )
+                    Just cat ->
+                        let
+                            updatedCat =
+                                { cat | clicks = cat.clicks + 1 }
+                        in
+                            ( { model | allCats = (Array.set model.currCatIndex updatedCat model.allCats) }
+                            , Cmd.none
+                            )
+
+        SwitchCat newIndex ->
+            ( { model | currCatIndex = newIndex }, Cmd.none )
 
 
 
@@ -89,13 +98,13 @@ view : Model -> Html Msg
 view model =
     div []
         [ catList model.allCats
-        , cat model.currCat
+        , cat (Array.get model.currCatIndex model.allCats)
         ]
 
 
-catList : List Cat -> Html Msg
+catList : Array Cat -> Html Msg
 catList cats =
-    ul [] (List.map (\cat -> li [ onClick (SwitchCat cat) ] [ text cat.name ]) cats)
+    ul [] (Array.toList (Array.indexedMap (\i cat -> li [ onClick (SwitchCat i) ] [ text cat.name ]) cats))
 
 
 cat : Maybe Cat -> Html Msg
