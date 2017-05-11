@@ -1,9 +1,14 @@
 module Main exposing (..)
 
+import Array exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Array exposing (..)
+import SharedStyles exposing (..)
+
+
+{ id, class, classList } =
+    homepageNamespace
 
 
 main : Program Never Model Msg
@@ -37,9 +42,25 @@ init : ( Model, Cmd Msg )
 init =
     ( Model
         (Array.fromList
-            [ (Cat "Tom" "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Tiggy_the_talking_cat.JPG/1024px-Tiggy_the_talking_cat.JPG" 0)
-            , (Cat "Captain McFurry" "https://newevolutiondesigns.com/images/freebies/cat-wallpaper-preview-24.jpg" 0)
-            , (Cat "Snowball" "http://mypetforumonline.com/wp-content/uploads/2014/08/fat-cat.jpg" 0)
+            [ (Cat "Tom"
+                ("https://upload.wikimedia.org/wikipedia/commons/"
+                    ++ "thumb/a/a6/Tiggy_the_talking_cat.JPG/"
+                    ++ "1024px-Tiggy_the_talking_cat.JPG"
+                )
+                0
+              )
+            , (Cat "Captain McFurry"
+                ("https://newevolutiondesigns.com/images/freebies/"
+                    ++ "cat-wallpaper-preview-24.jpg"
+                )
+                0
+              )
+            , (Cat "Snowball"
+                ("http://mypetforumonline.com/wp-content/"
+                    ++ "uploads/2014/08/fat-cat.jpg"
+                )
+                0
+              )
             ]
         )
         0
@@ -72,10 +93,14 @@ update msg model =
                         let
                             updatedCat =
                                 { cat | clicks = cat.clicks + 1 }
+
+                            updatedAllCats =
+                                Array.set
+                                    model.currCatIndex
+                                    updatedCat
+                                    model.allCats
                         in
-                            ( { model | allCats = (Array.set model.currCatIndex updatedCat model.allCats) }
-                            , Cmd.none
-                            )
+                            ( { model | allCats = updatedAllCats }, Cmd.none )
 
         SwitchCat newIndex ->
             ( { model | currCatIndex = newIndex }, Cmd.none )
@@ -97,25 +122,39 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ catList model.allCats
-        , cat (Array.get model.currCatIndex model.allCats)
+        [ catListView model.allCats
+        , catView (Array.get model.currCatIndex model.allCats)
         ]
 
 
-catList : Array Cat -> Html Msg
-catList cats =
-    ul [] (Array.toList (Array.indexedMap (\i cat -> li [ onClick (SwitchCat i) ] [ text cat.name ]) cats))
+catListView : Array Cat -> Html Msg
+catListView cats =
+    Array.indexedMap
+        (\idx cat ->
+            li
+                [ class [ CatsListItem ], onClick (SwitchCat idx) ]
+                [ text cat.name ]
+        )
+        cats
+        |> Array.toList
+        |> ul [ id CatsList ]
 
 
-cat : Maybe Cat -> Html Msg
-cat currCat =
+catView : Maybe Cat -> Html Msg
+catView currCat =
     case currCat of
         Nothing ->
             div [] []
 
-        Just c ->
-            div []
-                [ h2 [] [ text c.name ]
-                , img [ src c.imgSrc, onClick ClickCat ] []
-                , p [] [ text <| toString <| c.clicks ]
+        Just cat ->
+            div [ class [ TextCenter ] ]
+                [ h2 [] [ text cat.name ]
+                , img
+                    [ class [ CatImg ]
+                    , src cat.imgSrc
+                    , alt ("Picture of " ++ cat.name)
+                    , onClick ClickCat
+                    ]
+                    []
+                , h2 [] [ text <| toString cat.clicks ]
                 ]
