@@ -122,7 +122,8 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ catListView model.allCats
+        [ h1 [ class [ TextCenter ] ] [ text "Click the cat!" ]
+        , catListView model.allCats
         , catView (Array.get model.currCatIndex model.allCats)
         ]
 
