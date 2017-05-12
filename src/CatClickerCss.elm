@@ -2,7 +2,7 @@ module CatClickerCss exposing (css)
 
 import Css exposing (..)
 import Css.Namespace exposing (namespace)
-import SharedStyles exposing (..)
+import SharedStyles exposing (homepageNamespace, CssClasses(..), CssIds(..))
 
 
 css : Stylesheet
