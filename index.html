@@ -19010,6 +19010,15 @@ var _user$project$CatClicker$update = F2(
 			};
 		}
 	});
+var _user$project$CatClicker$selectFirst = function (selection) {
+	var _p2 = _elm_lang$core$List$head(
+		_NoRedInk$list_selection$List_Selection$toList(selection));
+	if (_p2.ctor === 'Just') {
+		return A2(_NoRedInk$list_selection$List_Selection$select, _p2._0, selection);
+	} else {
+		return selection;
+	}
+};
 var _user$project$CatClicker$Cat = F3(
 	function (a, b, c) {
 		return {name: a, imgSrc: b, clicks: c};
@@ -19029,7 +19038,8 @@ var _user$project$CatClicker$catData = {
 };
 var _user$project$CatClicker$init = {
 	ctor: '_Tuple2',
-	_0: _NoRedInk$list_selection$List_Selection$fromList(_user$project$CatClicker$catData),
+	_0: _user$project$CatClicker$selectFirst(
+		_NoRedInk$list_selection$List_Selection$fromList(_user$project$CatClicker$catData)),
 	_1: _elm_lang$core$Platform_Cmd$none
 };
 var _user$project$CatClicker$SwitchCat = function (a) {
@@ -19221,10 +19231,10 @@ var _user$project$CatClicker$view = function (model) {
 				_0: _mdgriffith$style_elements$Element_Attributes$center,
 				_1: {
 					ctor: '::',
-					_0: _mdgriffith$style_elements$Element_Attributes$spacing(30),
+					_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
 					_1: {
 						ctor: '::',
-						_0: _mdgriffith$style_elements$Element_Attributes$padding(10),
+						_0: _mdgriffith$style_elements$Element_Attributes$spacing(30),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -19247,9 +19257,9 @@ var _user$project$CatClicker$view = function (model) {
 								_1: {ctor: '[]'}
 							},
 							function () {
-								var _p2 = _NoRedInk$list_selection$List_Selection$selected(model);
-								if (_p2.ctor === 'Just') {
-									return _user$project$CatClicker$catView(_p2._0);
+								var _p3 = _NoRedInk$list_selection$List_Selection$selected(model);
+								if (_p3.ctor === 'Just') {
+									return _user$project$CatClicker$catView(_p3._0);
 								} else {
 									return _mdgriffith$style_elements$Element$empty;
 								}
