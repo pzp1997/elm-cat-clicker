@@ -36,19 +36,9 @@ type alias Model =
 
 catData : List Cat
 catData =
-    [ Cat "Tom"
-        ("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/"
-            ++ "Tiggy_the_talking_cat.JPG/1024px-Tiggy_the_talking_cat.JPG"
-        )
-        0
-    , Cat "Captain McFurry"
-        ("https://newevolutiondesigns.com/images/freebies/"
-            ++ "cat-wallpaper-preview-24.jpg"
-        )
-        0
-    , Cat "Snowball"
-        "http://mypetforumonline.com/wp-content/uploads/2014/08/fat-cat.jpg"
-        0
+    [ Cat "Tom" "http://i.imgur.com/A9BcZD9.jpg" 0
+    , Cat "Captain McFurry" "http://i.imgur.com/NqK74g7.jpg" 0
+    , Cat "Snowball" "http://i.imgur.com/yJYtfBd.jpg" 0
     ]
 
 
