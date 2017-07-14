@@ -44,7 +44,17 @@ catData =
 
 init : ( Model, Cmd Msg )
 init =
-    ( List.Selection.fromList catData, Cmd.none )
+    ( selectFirst <| List.Selection.fromList catData, Cmd.none )
+
+
+selectFirst : Selection a -> Selection a
+selectFirst selection =
+    case List.head <| List.Selection.toList selection of
+        Just hd ->
+            List.Selection.select hd selection
+
+        Nothing ->
+            selection
 
 
 
@@ -128,7 +138,7 @@ view : Model -> Html Msg
 view model =
     Element.viewport stylesheet <|
         column SansSerif
-            [ center, spacing 30, Attr.padding 10 ]
+            [ center, Attr.verticalCenter, spacing 30 ]
             [ h1 "Click the cat!"
             , selectorView <| List.Selection.toList model
             , el None [ Attr.verticalCenter ] <|
