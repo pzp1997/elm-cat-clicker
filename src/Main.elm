@@ -1,10 +1,9 @@
 module Main exposing (..)
 
-import Array exposing (Array)
-import Array.Extra
 import Html exposing (Html, div, h1, h2, ul, li, img, text)
 import Html.Attributes exposing (src, alt)
 import Html.Events exposing (onClick)
+import List.Selection exposing (Selection)
 import SharedStyles exposing (homepageNamespace, CssClasses(..), CssIds(..))
 
 
@@ -34,9 +33,7 @@ type alias Cat =
 
 
 type alias Model =
-    { cats : Array Cat
-    , currIndex : Int
-    }
+    Selection Cat
 
 
 catData : List Cat
@@ -59,7 +56,7 @@ catData =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model (Array.fromList catData) 0, Cmd.none )
+    ( List.Selection.fromList catData, Cmd.none )
 
 
 
@@ -68,25 +65,38 @@ init =
 
 type Msg
     = ClickCat
-    | SwitchCat Int
+    | SwitchCat Cat
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickCat ->
-            let
-                updatedCats =
-                    Array.Extra.update model.currIndex incrClicks model.cats
-            in
-                ( { model | cats = updatedCats }, Cmd.none )
+            ( updateSelected incrementClicks model, Cmd.none )
 
-        SwitchCat newIndex ->
-            ( { model | currIndex = newIndex }, Cmd.none )
+        SwitchCat newCat ->
+            ( List.Selection.select newCat model, Cmd.none )
 
 
-incrClicks : Cat -> Cat
-incrClicks cat =
+updateSelected : (a -> a) -> Selection a -> Selection a
+updateSelected f selection =
+    case List.Selection.selected selection of
+        Just selected ->
+            List.Selection.map
+                (\x ->
+                    if x == selected then
+                        f x
+                    else
+                        x
+                )
+                selection
+
+        Nothing ->
+            selection
+
+
+incrementClicks : Cat -> Cat
+incrementClicks cat =
     { cat | clicks = cat.clicks + 1 }
 
 
@@ -107,24 +117,24 @@ view : Model -> Html Msg
 view model =
     div []
         [ h1 [ class [ TextCenter ] ] [ text "Click the cat!" ]
-        , catListView model.cats
-        , case Array.get model.currIndex model.cats of
-            Nothing ->
-                text ""
-
+        , catListView <| List.Selection.toList model
+        , case List.Selection.selected model of
             Just cat ->
                 catView cat
+
+            Nothing ->
+                text ""
         ]
 
 
-catListView : Array Cat -> Html Msg
+catListView : List Cat -> Html Msg
 catListView cats =
-    Array.indexedMap catListItemView cats |> Array.toList |> ul [ id CatsList ]
+    ul [ id CatsList ] (List.map catListItemView cats)
 
 
-catListItemView : Int -> Cat -> Html Msg
-catListItemView index cat =
-    li [ class [ CatsListItem ], onClick (SwitchCat index) ] [ text cat.name ]
+catListItemView : Cat -> Html Msg
+catListItemView cat =
+    li [ class [ CatsListItem ], onClick (SwitchCat cat) ] [ text cat.name ]
 
 
 catView : Cat -> Html Msg
