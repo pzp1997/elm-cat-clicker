@@ -1,4 +1,4 @@
-module Main exposing (..)
+module CatClicker exposing (..)
 
 import Element exposing (column, el, empty, image, row)
 import Element.Attributes as Attr exposing (center, spacing)
