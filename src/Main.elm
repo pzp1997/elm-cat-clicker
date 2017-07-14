@@ -1,14 +1,12 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, h1, h2, ul, li, img, text)
-import Html.Attributes exposing (src, alt)
-import Html.Events exposing (onClick)
+import Element exposing (column, el, empty, image, row)
+import Element.Attributes as Attr exposing (center, spacing)
+import Element.Events exposing (onClick)
+import Html exposing (Html)
 import List.Selection exposing (Selection)
-import SharedStyles exposing (homepageNamespace, CssClasses(..), CssIds(..))
-
-
-{ id, class, classList } =
-    homepageNamespace
+import Style exposing (style)
+import Style.Font as Font
 
 
 main : Program Never Model Msg
@@ -113,40 +111,81 @@ subscriptions model =
 -- VIEW
 
 
+type alias El =
+    Element.Element Styles Never Msg
+
+
+type Styles
+    = None
+    | SansSerif
+    | H1
+    | H2
+    | H4
+
+
+stylesheet : Style.StyleSheet Styles Never
+stylesheet =
+    Style.stylesheet
+        [ style None []
+        , style SansSerif [ Font.typeface [ "Arial", "sans-serif" ] ]
+        , style H1 [ Font.size 36, Font.weight 500 ]
+        , style H2 [ Font.size 30, Font.weight 500 ]
+        , style H4 [ Font.size 18, Font.weight 500 ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
-    div []
-        [ h1 [ class [ TextCenter ] ] [ text "Click the cat!" ]
-        , catListView <| List.Selection.toList model
-        , case List.Selection.selected model of
-            Just cat ->
-                catView cat
+    Element.viewport stylesheet <|
+        column SansSerif
+            [ center, spacing 30, Attr.padding 10 ]
+            [ h1 "Click the cat!"
+            , selectorView <| List.Selection.toList model
+            , el None [ Attr.verticalCenter ] <|
+                case List.Selection.selected model of
+                    Just cat ->
+                        catView cat
 
-            Nothing ->
-                text ""
-        ]
-
-
-catListView : List Cat -> Html Msg
-catListView cats =
-    ul [ id CatsList ] (List.map catListItemView cats)
-
-
-catListItemView : Cat -> Html Msg
-catListItemView cat =
-    li [ class [ CatsListItem ], onClick (SwitchCat cat) ] [ text cat.name ]
-
-
-catView : Cat -> Html Msg
-catView cat =
-    div [ class [ TextCenter ] ]
-        [ h2 [] [ text cat.name ]
-        , img
-            [ class [ CatImg ]
-            , src cat.imgSrc
-            , alt ("Picture of " ++ cat.name)
-            , onClick ClickCat
+                    Nothing ->
+                        empty
             ]
-            []
-        , h2 [] [ text <| toString cat.clicks ]
+
+
+selectorView : List Cat -> El
+selectorView cats =
+    let
+        selectOption cat =
+            el None [ onClick (SwitchCat cat) ] (h4 cat.name)
+    in
+        row None [ spacing 15 ] (List.map selectOption cats)
+
+
+catView : Cat -> El
+catView cat =
+    column None
+        [ center, spacing 5 ]
+        [ h2 cat.name
+        , image cat.imgSrc
+            None
+            [ Attr.alt ("Picture of " ++ cat.name)
+            , onClick ClickCat
+            , Attr.height (Attr.px 320)
+            ]
+            empty
+        , h2 <| toString cat.clicks ++ " clicks"
         ]
+
+
+h1 : String -> El
+h1 text =
+    el H1 [] (Element.text text)
+
+
+h2 : String -> El
+h2 text =
+    el H2 [] (Element.text text)
+
+
+h4 : String -> El
+h4 text =
+    el H4 [] (Element.text text)
