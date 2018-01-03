@@ -1,20 +1,19 @@
 module CatClicker exposing (..)
 
-import Element exposing (column, el, empty, image, row)
-import Element.Attributes as Attr exposing (center, spacing)
+import Element exposing (column, el, empty, h1, h2, h4, image, row, text)
+import Element.Attributes exposing (center, height, px, spacing, verticalCenter)
 import Element.Events exposing (onClick)
 import Html exposing (Html)
-import List.Selection exposing (Selection)
-import Style exposing (style)
-import Style.Font as Font
+import List.Selection as Selection exposing (Selection)
+import Style exposing (StyleSheet, style, styleSheet)
+import Style.Font exposing (font, sansSerif, typeface)
 
 
 main : Program Never Model Msg
 main =
-    Html.program
-        { init = init
+    Html.beginnerProgram
+        { model = model
         , update = update
-        , subscriptions = subscriptions
         , view = view
         }
 
@@ -42,19 +41,15 @@ catData =
     ]
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( selectFirst <| List.Selection.fromList catData, Cmd.none )
+model : Model
+model =
+    Selection.fromList catData
+        |> case catData of
+            [] ->
+                identity
 
-
-selectFirst : Selection a -> Selection a
-selectFirst selection =
-    case List.head <| List.Selection.toList selection of
-        Just hd ->
-            List.Selection.select hd selection
-
-        Nothing ->
-            selection
+            hd :: _ ->
+                Selection.select hd
 
 
 
@@ -66,45 +61,21 @@ type Msg
     | SwitchCat Cat
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         ClickCat ->
-            ( updateSelected incrementClicks model, Cmd.none )
+            Selection.mapSelected
+                { selected = incrementClicks, rest = identity }
+                model
 
         SwitchCat newCat ->
-            ( List.Selection.select newCat model, Cmd.none )
-
-
-updateSelected : (a -> a) -> Selection a -> Selection a
-updateSelected f selection =
-    case List.Selection.selected selection of
-        Just selected ->
-            List.Selection.map
-                (\x ->
-                    if x == selected then
-                        f x
-                    else
-                        x
-                )
-                selection
-
-        Nothing ->
-            selection
+            Selection.select newCat model
 
 
 incrementClicks : Cat -> Cat
 incrementClicks cat =
     { cat | clicks = cat.clicks + 1 }
-
-
-
--- SUBSCRIBPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
 
 
 
@@ -118,19 +89,13 @@ type alias El =
 type Styles
     = None
     | SansSerif
-    | H1
-    | H2
-    | H4
 
 
-stylesheet : Style.StyleSheet Styles Never
+stylesheet : StyleSheet Styles Never
 stylesheet =
-    Style.stylesheet
+    styleSheet
         [ style None []
-        , style SansSerif [ Font.typeface [ "Arial", "sans-serif" ] ]
-        , style H1 [ Font.size 36, Font.weight 500 ]
-        , style H2 [ Font.size 30, Font.weight 500 ]
-        , style H4 [ Font.size 18, Font.weight 500 ]
+        , style SansSerif [ typeface [ font "Arial", sansSerif ] ]
         ]
 
 
@@ -138,16 +103,11 @@ view : Model -> Html Msg
 view model =
     Element.viewport stylesheet <|
         column SansSerif
-            [ center, Attr.verticalCenter, spacing 30 ]
-            [ h1 "Click the cat!"
-            , selectorView <| List.Selection.toList model
-            , el None [ Attr.verticalCenter ] <|
-                case List.Selection.selected model of
-                    Just cat ->
-                        catView cat
-
-                    Nothing ->
-                        empty
+            [ center, verticalCenter, spacing 30 ]
+            [ h1 None [] <| text "Click the cat!"
+            , selectorView <| Selection.toList model
+            , el None [ verticalCenter ] <|
+                Element.whenJust (Selection.selected model) catView
             ]
 
 
@@ -155,7 +115,7 @@ selectorView : List Cat -> El
 selectorView cats =
     let
         selectOption cat =
-            el None [ onClick (SwitchCat cat) ] (h4 cat.name)
+            el None [ onClick (SwitchCat cat) ] (h4 None [] <| text cat.name)
     in
         row None [ spacing 15 ] (List.map selectOption cats)
 
@@ -164,28 +124,10 @@ catView : Cat -> El
 catView cat =
     column None
         [ center, spacing 5 ]
-        [ h2 cat.name
-        , image cat.imgSrc
+        [ h2 None [] <| text cat.name
+        , image
             None
-            [ Attr.alt ("Picture of " ++ cat.name)
-            , onClick ClickCat
-            , Attr.height (Attr.px 320)
-            ]
-            empty
-        , h2 <| toString cat.clicks ++ " clicks"
+            [ onClick ClickCat, height (px 320) ]
+            { src = cat.imgSrc, caption = "Picture of " ++ cat.name }
+        , h2 None [] <| text (toString cat.clicks ++ " clicks")
         ]
-
-
-h1 : String -> El
-h1 text =
-    el H1 [] (Element.text text)
-
-
-h2 : String -> El
-h2 text =
-    el H2 [] (Element.text text)
-
-
-h4 : String -> El
-h4 text =
-    el H4 [] (Element.text text)
